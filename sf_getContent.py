@@ -37,7 +37,14 @@ def __getPushDate(url):
         time = time.split(':')
         hours, minutes, seconds = time 
         return f'{year}-{month}-{day} {hours}:{minutes}:{seconds}'
-
+    #[thu, jun, , 1, 22:57:10, 2023]
+    elif len(dateList) == 6:
+        year, month, day, time = dateList[5], dateList[1], dateList[3], dateList[4]
+        month = __getMonth(month)
+        time = time.split(':')
+        hours, minutes, seconds = time
+        return f'{year}-{month}-{day} {hours}:{minutes}:{seconds}'
+    
 def __getMonth(month):
     dayDict = {
         'Jan':'1', 'Feb':'2', 'Mar':'3', 'Apr':'4', 'May':'5', 'Jun':'6',
