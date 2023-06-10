@@ -1,4 +1,6 @@
-
+'''
+處理爆文及X文的格式
+'''
 def pushCalculator(push):
     if push == '':
         return 0
