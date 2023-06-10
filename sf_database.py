@@ -2,10 +2,10 @@ import sqlite3
 import sf_getUrlList as getUrl
 
 #連結資料庫，如果沒有該資料庫，則會建立一個新的
-
 def connectTodb(filePath):
     return sqlite3.connect(filePath)
 
+#建立table
 def createDbTables(db, tableName):
         sql = f'''
         CREATE TABLE IF NOT EXISTS {tableName} (
@@ -17,7 +17,7 @@ def createDbTables(db, tableName):
         )
         '''
         db.execute(sql)
-        print(tableName, '建立完成')
+        print(tableName, '表單建立完成')
 
 # 1.從該表單篩選出全部的資料(未來資料多了以後, 可以加上篩選的區間)
 # 2.比對該次爬蟲爬到的資料, 是否已經存在資料庫中
