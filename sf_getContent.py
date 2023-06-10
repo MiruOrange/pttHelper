@@ -1,3 +1,6 @@
+'''
+解析取得的soup檔
+'''
 import sf_pushCalculator as push
 import requests
 from bs4 import BeautifulSoup
@@ -14,13 +17,16 @@ def getContent(soup):
             pushAmount = article.find('div', 'nrec').text
             pushAmount = push.pushCalculator(pushAmount)    #回傳為int
             pushDate = __getPushDate(url)
-            articles.append({                  #self.articles陣列存放字典資料
-                'author':author,
-                'title':title, 
-                'push':pushAmount,  #pushAmount為int
-                'pushDate':pushDate,
-                'url' : url
-            })
+            if pushDate == 'No Data':             # 有遇到發文的格式很奇怪, 應該是刪掉了標頭的部份, 造成程式錯誤, 故增加此行
+                continue
+            else:
+                articles.append({                  #self.articles陣列存放字典資料
+                    'author':author,
+                    'title':title, 
+                    'push':pushAmount,  #pushAmount為int
+                    'pushDate':pushDate,
+                    'url' : url
+                })
     return articles
     #準備在此存入db
 
@@ -29,21 +35,24 @@ def __getPushDate(url):
     cookies = {'over18':'1'}
     htmlFile = requests.get(url, cookies= cookies)
     soup = BeautifulSoup(htmlFile.text, 'lxml')
-    dateStr = soup.find_all("span", class_="article-meta-value")[-1].text
-    dateList = dateStr.split(' ')
-    if len(dateList) == 5:
-        year, month, day, time = dateList[4], dateList[1], dateList[2], dateList[3]
-        month = __getMonth(month)
-        time = time.split(':')
-        hours, minutes, seconds = time 
-        return f'{year}-{month}-{day} {hours}:{minutes}:{seconds}'
-    #[thu, jun, , 1, 22:57:10, 2023]
-    elif len(dateList) == 6:
-        year, month, day, time = dateList[5], dateList[1], dateList[3], dateList[4]
-        month = __getMonth(month)
-        time = time.split(':')
-        hours, minutes, seconds = time
-        return f'{year}-{month}-{day} {hours}:{minutes}:{seconds}'
+    if soup.find_all("span", class_="article-meta-value") != []:
+        dateStr = soup.find_all("span", class_="article-meta-value")[-1].text
+        dateList = dateStr.split(' ')
+        if len(dateList) == 5:
+            year, month, day, time = dateList[4], dateList[1], dateList[2], dateList[3]
+            month = __getMonth(month)
+            time = time.split(':')
+            hours, minutes, seconds = time 
+            return f'{year}-{month}-{day} {hours}:{minutes}:{seconds}'
+        #[thu, jun, , 1, 22:57:10, 2023]
+        elif len(dateList) == 6:
+            year, month, day, time = dateList[5], dateList[1], dateList[3], dateList[4]
+            month = __getMonth(month)
+            time = time.split(':')
+            hours, minutes, seconds = time
+            return f'{year}-{month}-{day} {hours}:{minutes}:{seconds}'
+    else:
+        return 'No Data'
     
 def __getMonth(month):
     dayDict = {
