@@ -13,7 +13,9 @@ def createDbTables(db, tableName):
             title TEXT,
             url TEXT,
             push INTEGER,
-            createDate DATE
+            createDate DATE,
+            articleContent TEXT,
+            articleDiscuss TEXT
         )
         '''
         db.execute(sql)
@@ -30,27 +32,25 @@ def saveData(db, tableName, articleList):
     sql = selectSql.format(tableName)                            # 取出表單名稱name放入
     dbData = db.execute(sql).fetchall()                          # 從db中取出現有url
 
-    # 單獨取出db所有的url
-    dbUrlList = getUrl.getUrlFromTuppleInList(dbData)
-    # 取出該次爬蟲資料的url
-    urlList = getUrl.getUrlList(articleList)                     # 從爬下來的文章中, 取出url準備和db的資料做比對
-    # 該次爬蟲資料url不存在db的清單
-    urlNotExistYet = [x for x in urlList if x not in dbUrlList]  # 找出url不存在db的文章, 不存在, 則存入
-    # 該次爬蟲資料url已存在db的清單
-    urlExists = [x for x in urlList if x in dbUrlList]           # 找出url已存在db的文章, 已存在, 則更新push數
+    
+    dbUrlList = getUrl.getUrlFromTuppleInList(dbData)           # 單獨取出db所有的url
+    urlList = getUrl.getUrlList(articleList)                    # 取出該次爬蟲資料的url
+    
+    urlNotExistYet = [x for x in urlList if x not in dbUrlList]  # 該次爬蟲資料url不存在db的清單  
+    urlExists = [x for x in urlList if x in dbUrlList]           # 該次爬蟲資料url已存在db的清單
     
     
     #db 處理
     for article in articleList:
         #如果url存在 urlNotExistYet, 則存入db
         if article['url'] in urlNotExistYet:
-            addSql = "INSERT INTO {} (author, title, url, push, createDate) VALUES (?, ?, ?, ?, ?)"
-            values = (article['author'], article['title'], article['url'], article['push'], article['pushDate'])
+            addSql = "INSERT INTO {} (author, title, url, push, createDate, articleContent, articleDiscuss) VALUES (?, ?, ?, ?, ?, ?, ?)"
+            values = (article['author'], article['title'], article['url'], article['push'], article['pushDate'], article['articleContent'], article['articleDiscuss'])
             db.execute(addSql.format(tableName), values)
             db.commit()
         #如果url存在 urlExists, 則更新push
         if article['url'] in urlExists:
-            updateSql = "UPDATE {} SET push = ? WHERE url = ?"
-            values = (article['push'], article['url'])
+            updateSql = "UPDATE {} SET push = ?, title = ?, articleContent = ?, articleDiscuss = ? WHERE url = ?"
+            values = (article['push'], article['title'], article['url'], article['articleContent'], article['articleDiscuss'])    #更新title, 是有時user會更新文章標題
             db.execute(updateSql.format(tableName), values)
             db.commit()
